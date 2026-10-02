@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}<p class="page-kicker">Organisation map</p><h1 class="page-title">Departments</h1><p class="page-subtitle">A quick view of where your people work and how teams are distributed.</p>
+<div class="department-strip">{% for d in departments %}<div class="mini-stat"><span>{{ d.department_name }}</span><strong>{{ d.employee_count }}</strong><small>people</small></div>{% endfor %}</div>
+<table><tr><th>ID</th><th>Department</th><th>Location</th><th>Employees</th></tr>
+{% for d in departments %}<tr><td>{{d.department_id}}</td><td>{{d.department_name}}</td><td>{{d.location}}</td><td>{{d.employee_count}}</td></tr>{% endfor %}</table>
+{% endblock %}

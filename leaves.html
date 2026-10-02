@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="title-row"><div><p class="page-kicker">Requests & approvals</p><h1>Leave Requests</h1></div><a class="btn" href="/leaves/add">+ Apply Leave</a></div>
+<div class="table-tools"><input type="search" placeholder="Search requests..." data-table-filter="#leaveTable"><select data-status-filter="#leaveTable"><option value="">All statuses</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div>
+<table id="leaveTable"><tr><th>ID</th><th>Employee</th><th>Type</th><th>Start</th><th>End</th><th>Status</th><th>Action</th></tr>
+{% for l in leaves %}<tr><td>{{l.leave_id}}</td><td>{{l.employee_name}}</td><td>{{l.leave_type_name}}</td><td>{{l.start_date}}</td><td>{{l.end_date}}</td><td><span class="status status-{{l.status}}">{{l.status}}</span></td><td>
+{% if l.status=='Pending' %}<form class="inline" method="post" action="/leaves/status/{{l.leave_id}}/Approved"><button>Approve</button></form>
+<form class="inline" method="post" action="/leaves/status/{{l.leave_id}}/Rejected"><button class="danger">Reject</button></form>{% else %}—{% endif %}
+</td></tr>{% endfor %}</table>
+{% endblock %}

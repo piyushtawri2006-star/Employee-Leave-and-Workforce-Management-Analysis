@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Apply Leave</h1>
+<form method="post" class="form">
+<label>Employee<select name="employee_id" required>{% for e in employees %}<option value="{{e.employee_id}}">{{e.name}}</option>{% endfor %}</select></label>
+<label>Leave Type<select name="leave_type_id" required>{% for t in leave_types %}<option value="{{t.leave_type_id}}">{{t.leave_type_name}}</option>{% endfor %}</select></label>
+<label>Start Date<input type="date" name="start_date" required></label>
+<label>End Date<input type="date" name="end_date" id="end_date" required></label>
+<label>Reason<textarea name="reason"></textarea></label>
+<button class="btn">Submit</button>
+</form>
+<script>
+const startDate = document.querySelector('[name="start_date"]');
+const endDate = document.querySelector('#end_date');
+startDate.addEventListener('change', () => { endDate.min = startDate.value; });
+</script>
+{% endblock %}

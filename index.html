@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="page-kicker">Operations overview</p><h1 class="page-title">Good morning, manager.</h1><p class="page-subtitle">A live view of your workforce, attendance and leave activity.</p>
+<div class="cards">
+{% for key,label in [('employees','Employees'),('departments','Departments'),('leaves','Leave Requests'),('attendance','Attendance Records')] %}
+<div class="card"><span class="card-label">{{ label }}</span><strong>{{ stats[key] }}</strong><span class="metric-note">Live database total</span></div>
+{% endfor %}
+</div>
+<div class="grid dashboard-charts">
+<section class="panel chart-panel">
+<div class="panel-heading"><div><span class="chart-eyebrow">Team distribution</span><h2>Employees by Department</h2></div><a class="quick-link" href="/employees">View team</a></div>
+<div class="chart-toolbar"><span id="deptSummary" class="chart-summary"></span><div class="chart-switcher" role="group" aria-label="Department chart type"><button type="button" class="chart-mode active" data-chart="dept" data-type="bar">Bars</button><button type="button" class="chart-mode" data-chart="dept" data-type="doughnut">Share</button></div></div>
+<div class="chart-frame"><canvas id="deptChart"></canvas></div><p id="deptChartInfo" class="chart-info">Hover over a department to inspect its team size.</p>
+</section>
+<section class="panel chart-panel">
+<div class="panel-heading"><div><span class="chart-eyebrow">Request pipeline</span><h2>Leave Status</h2></div><a class="quick-link" href="/leaves">Review requests</a></div>
+<div class="chart-toolbar"><span id="leaveSummary" class="chart-summary"></span></div>
+<div class="chart-frame chart-frame--donut"><canvas id="leaveChart"></canvas></div><p id="leaveChartInfo" class="chart-info">Click a segment to see its request count.</p>
+</section>
+</div>
+<script>
+const deptLabels={{ dept|map(attribute='department_name')|list|tojson }};
+const deptValues={{ dept|map(attribute='employee_count')|list|tojson }};
+const leaveLabels={{ leave_status|map(attribute='status')|list|tojson }};
+const leaveValues={{ leave_status|map(attribute='count')|list|tojson }};
+const chartColors=['#0f9f9a','#f3b544','#ee6c4d','#4f78a8','#7b61a8','#4cae7b'];
+const deptChartElement=document.getElementById('deptChart');
+const leaveChartElement=document.getElementById('leaveChart');
+const deptSummary=document.getElementById('deptSummary');
+const leaveSummary=document.getElementById('leaveSummary');
+let deptChart;
+const totalEmployees=deptValues.reduce((total,value)=>total+Number(value),0);
+const totalRequests=leaveValues.reduce((total,value)=>total+Number(value),0);
+deptSummary.textContent=`${totalEmployees} employees across ${deptLabels.length} departments`;
+leaveSummary.textContent=`${totalRequests} total requests`;
+function renderDepartmentChart(type='bar'){
+	if(deptChart) deptChart.destroy();
+	deptChart=new Chart(deptChartElement,{type,data:{labels:deptLabels,datasets:[{label:'Employees',data:deptValues,backgroundColor:chartColors,borderColor:'#ffffff',borderWidth:2,borderRadius:type==='bar'?8:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut',position:'bottom',labels:{usePointStyle:true,padding:18}},tooltip:{callbacks:{label:context=>` ${context.raw} employee(s)`}}},scales:type==='bar'?{x:{beginAtZero:true,ticks:{precision:0},grid:{color:'#e7eeee'}},y:{grid:{display:false}}}:undefined,onClick:(event,elements)=>{if(elements.length){const index=elements[0].index;document.getElementById('deptChartInfo').textContent=`${deptLabels[index]} has ${deptValues[index]} employee(s).`;}}}});
+}
+const leaveChart=new Chart(leaveChartElement,{type:'doughnut',data:{labels:leaveLabels,datasets:[{data:leaveValues,backgroundColor:['#4f78a8','#ee6c4d','#0f9f9a','#f3b544'],borderColor:'#ffffff',borderWidth:4,hoverOffset:12}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:18}},tooltip:{callbacks:{label:context=>` ${context.label}: ${context.raw} request(s)`}}},onClick:(event,elements)=>{if(elements.length){const index=elements[0].index;document.getElementById('leaveChartInfo').textContent=`${leaveLabels[index]}: ${leaveValues[index]} request(s).`;}}}});
+renderDepartmentChart();
+document.querySelectorAll('.chart-mode').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.chart-mode[data-chart="dept"]').forEach(item=>item.classList.remove('active'));button.classList.add('active');renderDepartmentChart(button.dataset.type);}));
+</script>
+{% endblock %}

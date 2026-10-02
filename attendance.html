@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="title-row"><div><p class="page-kicker">Daily workforce pulse</p><h1>Attendance</h1></div></div>
+<form method="get" class="date-filter">
+	<label for="attendance_date">Attendance date</label>
+	<input id="attendance_date" type="date" name="attendance_date" value="{{ selected_date }}" required>
+	<button class="btn" type="submit">Load date</button>
+</form>
+<div class="attendance-summary"><span><strong>{{ attendance|selectattr('status','equalto','Present')|list|length }}</strong> Present</span><span><strong>{{ attendance|selectattr('status','equalto','Absent')|list|length }}</strong> Absent</span><span><strong>{{ attendance|selectattr('status','equalto','Leave')|list|length }}</strong> On leave</span></div>
+<form method="post">
+	<input type="hidden" name="attendance_date" value="{{ selected_date }}">
+	<table id="attendanceTable">
+		<tr><th>Employee</th><th>Status</th><th>Leave Type</th><th>Check In</th><th>Check Out</th></tr>
+		{% for a in attendance %}
+		<tr>
+			<td>{{ a.employee_name }}</td>
+			<td><select name="status_{{ a.employee_id }}">
+				{% for status in ['Present', 'Absent', 'Leave'] %}
+				<option value="{{ status }}" {% if (a.status or 'Absent') == status %}selected{% endif %}>{{ status }}</option>
+				{% endfor %}
+			</select></td>
+			<td><select name="leave_type_{{ a.employee_id }}">
+				<option value="">Not applicable</option>
+				{% for leave_type in leave_types %}
+				<option value="{{ leave_type.leave_type_id }}" {% if a.leave_type_id == leave_type.leave_type_id %}selected{% endif %}>{{ leave_type.leave_type_name }}</option>
+				{% endfor %}
+			</select></td>
+			<td><input type="time" name="check_in_{{ a.employee_id }}" value="{{ a.check_in or '' }}"></td>
+			<td><input type="time" name="check_out_{{ a.employee_id }}" value="{{ a.check_out or '' }}"></td>
+		</tr>
+		{% else %}
+		<tr><td colspan="5">No active employees found.</td></tr>
+		{% endfor %}
+	</table>
+	{% if attendance %}<button class="btn" type="submit">Save attendance</button>{% endif %}
+</form>
+<script>
+document.querySelectorAll('select[name^="status_"]').forEach(statusSelect => {
+	const leaveTypeSelect = document.querySelector(`select[name="leave_type_${statusSelect.name.replace('status_', '')}"]`);
+	const updateLeaveTypeRequirement = () => {
+		leaveTypeSelect.required = statusSelect.value === 'Leave';
+	};
+	statusSelect.addEventListener('change', updateLeaveTypeRequirement);
+	updateLeaveTypeRequirement();
+});
+</script>
+{% endblock %}

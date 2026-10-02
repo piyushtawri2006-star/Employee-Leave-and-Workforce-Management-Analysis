@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="page-kicker">Decision support</p><h1 class="page-title">AI/ML Leave Prediction</h1>
+<p class="page-subtitle">Model a workforce scenario and get a quick signal for proactive planning.</p>
+<div class="prediction-layout"><div class="prediction-intro"><span class="model-badge">MODEL READY</span><h2>Spot leave risk before it becomes a scheduling surprise.</h2><p>Use current attendance, workload and experience signals to generate a simple planning recommendation.</p></div>
+<form method="post" class="form">
+<label>Employee Name
+  <select name="employee_id" required>
+    <option value="">Select employee</option>
+    {% for employee in employees %}
+      <option value="{{ employee.employee_id }}">{{ employee.name }}</option>
+    {% endfor %}
+  </select>
+</label>
+<label>Attendance Percentage<input type="number" step="0.1" name="attendance_pct" min="0" max="100" required></label>
+<label>Previous Leave Count<input type="number" name="previous_leaves" min="0" required></label>
+<label>Experience (years)<input type="number" step="0.1" name="experience" min="0" required></label>
+<label>Workload (1-10)<input type="number" step="0.1" name="workload" min="1" max="10" required></label>
+<label>Department Code<input type="number" name="department_code" min="1" max="4" required></label>
+<div class="form-actions"><button class="btn">Run prediction</button><button type="reset" class="secondary">Clear</button></div>
+</form>
+<div class="prediction-tip"><strong>Presentation tip</strong><span>Try attendance 78%, workload 8 and 2 previous leaves to demonstrate the model live.</span></div></div>
+{% if result %}<div class="result result-{{ result_class or 'unlikely' }}">{{ result }}</div>{% endif %}
+{% endblock %}

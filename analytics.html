@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Data Analytics</h1>
+<div class="grid">
+<section class="panel"><h2>Department Analysis</h2><table><tr><th>Department</th><th>Employees</th><th>Avg Salary</th></tr>{% for x in dept %}<tr><td>{{x.department_name}}</td><td>{{x.employee_count}}</td><td>₹{{x.avg_salary|round(2)}}</td></tr>{% endfor %}</table></section>
+<section class="panel">
+	<div class="analytics-toolbar">
+		<h2>Leave Type Analysis</h2>
+		<label>Leave type<select id="leaveTypeFilter"><option value="all">All leave types</option>{% for x in leaves %}<option value="{{ loop.index0 }}">{{ x.leave_type_name }}</option>{% endfor %}</select></label>
+		<label>Chart<select id="leaveChartMode"><option value="bar">Bar</option><option value="doughnut">Doughnut</option></select></label>
+	</div>
+	<canvas id="leaveTypeChart"></canvas>
+	<p id="leaveChartInfo" class="chart-info">Click a bar to view its leave-day total.</p>
+</section>
+</div>
+<section class="panel"><h2>Attendance Percentage</h2><table><tr><th>Employee</th><th>Attendance %</th></tr>{% for x in attendance %}<tr><td>{{x.name}}</td><td>{{x.attendance_pct or 0}}%</td></tr>{% endfor %}</table></section>
+<script>
+const leaveData={{ leaves|tojson }};
+const chartCanvas=document.getElementById('leaveTypeChart');
+const filter=document.getElementById('leaveTypeFilter');
+const mode=document.getElementById('leaveChartMode');
+const chartInfo=document.getElementById('leaveChartInfo');
+let leaveChart;
+function renderLeaveChart(){
+	const selected=filter.value === 'all' ? leaveData : [leaveData[Number(filter.value)]];
+	const labels=selected.map(item=>item.leave_type_name);
+	const values=selected.map(item=>Number(item.leave_count));
+	if(leaveChart) leaveChart.destroy();
+	leaveChart=new Chart(chartCanvas,{type:mode.value,data:{labels:labels,datasets:[{label:'Leave Days',data:values,backgroundColor:['#2563eb','#16a34a','#f59e0b']}]},options:{responsive:true,plugins:{legend:{display:mode.value==='doughnut'},tooltip:{callbacks:{label:context=>` ${context.raw} leave day(s)`}}},scales:mode.value==='bar'?{y:{beginAtZero:true,ticks:{precision:0}}}:undefined,onClick:(event,elements)=>{if(elements.length){const item=selected[elements[0].index];chartInfo.textContent=`${item.leave_type_name}: ${item.leave_count} leave day(s)`;}}}});
+}
+filter.addEventListener('change',renderLeaveChart);
+mode.addEventListener('change',renderLeaveChart);
+renderLeaveChart();
+</script>
+{% endblock %}
